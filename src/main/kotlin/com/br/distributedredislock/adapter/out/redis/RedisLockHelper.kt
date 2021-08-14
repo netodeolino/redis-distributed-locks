@@ -1,27 +1,27 @@
-package com.br.distributedredislock.application.service
+package com.br.distributedredislock.adapter.out.redis
 
+import com.br.distributedredislock.application.port.out.RedisLockHelperPort
 import org.slf4j.LoggerFactory
 import org.springframework.integration.redis.util.RedisLockRegistry
 import org.springframework.stereotype.Service
 import java.util.concurrent.locks.Lock
 
 @Service
-class RedisLockService(private val redisLockRegistry: RedisLockRegistry) {
+class RedisLockHelper(private val redisLockRegistry: RedisLockRegistry) : RedisLockHelperPort {
 
     companion object {
-        private val logger = LoggerFactory.getLogger(RedisLockService::class.simpleName)
+        private val logger = LoggerFactory.getLogger(RedisLockHelper::class.simpleName)
     }
 
-    fun lock(lockKey: String) {
+    override fun lock(lockKey: String) {
         val lock: Lock = obtainLock(lockKey)
         lock.lock()
     }
 
-    fun unlock(lockKey: String) {
+    override fun unlock(lockKey: String) {
         try {
             val lock: Lock = obtainLock(lockKey)
             lock.unlock()
-            redisLockRegistry.expireUnusedOlderThan(6000)
         } catch (e: Exception) {
             logger.error("[RedisLockService][unlock] [{}]", lockKey, e)
         }
